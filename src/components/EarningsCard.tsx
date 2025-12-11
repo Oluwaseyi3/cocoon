@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calculator, TrendingUp } from 'lucide-react';
+import { Calculator } from 'lucide-react';
 
 interface EarningsCardProps {
     nodeCount: number;
@@ -42,7 +42,7 @@ export const EarningsCard: React.FC<EarningsCardProps> = ({ nodeCount, pricePerN
                     <span style={{ color: 'white', fontWeight: '600' }}>${dailyYield.toFixed(2)}</span>
                 </div>
                 <div style={{ height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', overflow: 'hidden' }}>
-                    <div style={{ width: '100%', height: '100%', background: 'var(--accent)', boxShadow: '0 0 10px var(--accent-glow)' }}></div>
+                    <div style={{ width: '100%', height: '100%', background: 'var(--accent)' }}></div>
                 </div>
             </div>
 
@@ -62,7 +62,7 @@ export const EarningsCard: React.FC<EarningsCardProps> = ({ nodeCount, pricePerN
                 </div>
             </div>
 
-            <div style={{ space: 'y-4' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
                     <span style={{ color: 'var(--text-muted)' }}>Deployment Cost:</span>
                     <span style={{ color: '#ef4444' }}>-${totalCost.toLocaleString()}.00</span>

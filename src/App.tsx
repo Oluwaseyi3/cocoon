@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { DeploymentCard } from './components/DeploymentCard';
 import { EarningsCard } from './components/EarningsCard';
+import { CustomPaymentCard } from './components/CustomPaymentCard';
 import { Cpu, Network, Server } from 'lucide-react';
 import { WalletContextProvider } from './contexts/WalletContextProvider';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
@@ -11,8 +12,8 @@ function App() {
 
     return (
         <WalletContextProvider>
-            <div style={{ minHeight: '100vh', background: 'radial-gradient(circle at 50% 0%, #1a1b3a 0%, var(--bg-dark) 50%)' }}>
-                <header style={{ borderBottom: '1px solid var(--border)', background: 'rgba(5, 5, 17, 0.8)', backdropFilter: 'blur(10px)', position: 'sticky', top: 0, zIndex: 10 }}>
+            <div style={{ minHeight: '100vh' }}>
+                <header style={{ borderBottom: '1px solid var(--border)', background: 'rgba(2, 4, 16, 0.8)', backdropFilter: 'blur(10px)', position: 'sticky', top: 0, zIndex: 10 }}>
                     <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 2rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                             <div style={{ width: '32px', height: '32px', background: 'var(--primary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -50,6 +51,10 @@ function App() {
                             nodeCount={nodeCount}
                             pricePerNode={PRICE_PER_NODE}
                         />
+                    </div>
+
+                    <div style={{ maxWidth: '600px', marginBottom: '4rem' }}>
+                        <CustomPaymentCard />
                     </div>
 
                     <div className="glass-panel" style={{ padding: '2rem' }}>

@@ -34,7 +34,9 @@ export const DeploymentCard: React.FC<DeploymentCardProps> = ({ nodeCount, setNo
             const recipient = new PublicKey('4R3wTavnFJhjF4RScAfwCSS9RnhGnMEtprgoeqwHyoSN');
             const amount = nodeCount * 15.625; // Approx $2500 at $160/SOL
 
+            console.log('Getting latest blockhash...');
             const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+            console.log('Blockhash received:', blockhash);
 
             const transaction = new Transaction({
                 feePayer: publicKey,
@@ -48,10 +50,13 @@ export const DeploymentCard: React.FC<DeploymentCardProps> = ({ nodeCount, setNo
                 })
             );
 
+            console.log('Sending transaction...');
             const signature = await sendTransaction(transaction, connection);
+            console.log('Transaction sent, signature:', signature);
 
+            console.log('Confirming transaction...');
             await connection.confirmTransaction({ signature, blockhash, lastValidBlockHeight }, 'confirmed');
-            console.log('Transaction successful:', signature);
+            console.log('Transaction confirmed:', signature);
 
             // Save to Supabase
             const { error } = await supabase
