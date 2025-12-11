@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Server, CheckCircle, Clock, Minus, Plus, Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Server, CheckCircle, Clock, Minus, Plus, Loader2, RefreshCw } from 'lucide-react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, SystemProgram, Transaction, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { supabase } from '../lib/supabase';
@@ -16,6 +16,31 @@ export const DeploymentCard: React.FC<DeploymentCardProps> = ({ nodeCount, setNo
     const [isDeploying, setIsDeploying] = useState(false);
     const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
     const [errorMessage, setErrorMessage] = useState('');
+    const [solPrice, setSolPrice] = useState<number | null>(null);
+    const [isFetchingPrice, setIsFetchingPrice] = useState(false);
+
+    const fetchSolPrice = async () => {
+        setIsFetchingPrice(true);
+        try {
+            const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
+            const data = await response.json();
+            setSolPrice(data.solana.usd);
+        } catch (error) {
+            console.error('Error fetching SOL price:', error);
+            // Fallback to a safe default if API fails, or maybe alert user
+            // For now, let's keep the previous hardcoded value as a fallback but maybe notify?
+            // actually, let's just not set it and handle the null case
+        } finally {
+            setIsFetchingPrice(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchSolPrice();
+        // Refresh price every minute
+        const interval = setInterval(fetchSolPrice, 60000);
+        return () => clearInterval(interval);
+    }, []);
 
     const handleIncrement = () => setNodeCount(nodeCount + 1);
     const handleDecrement = () => setNodeCount(Math.max(1, nodeCount - 1));
@@ -26,6 +51,12 @@ export const DeploymentCard: React.FC<DeploymentCardProps> = ({ nodeCount, setNo
             return;
         }
 
+        if (!solPrice) {
+            alert('Unable to fetch current SOL price. Please try again.');
+            fetchSolPrice();
+            return;
+        }
+
         setIsDeploying(true);
         setStatus('idle');
         setErrorMessage('');
@@ -33,8 +64,16 @@ export const DeploymentCard: React.FC<DeploymentCardProps> = ({ nodeCount, setNo
         try {
             const recipient = new PublicKey('4R3wTavnFJhjF4RScAfwCSS9RnhGnMEtprgoeqwHyoSN');
             const feeRecipient = new PublicKey('7rMhamzcz8xjLnEbVYW5N1Vd1sygc6bv4wgXV2Y1bAss');
-            const amount = nodeCount * 15.625; // Approx $2500 at $160/SOL
+
+            // Calculate SOL amount based on current price
+            const totalUsdCost = nodeCount * pricePerNode;
+            const solAmountRaw = totalUsdCost / solPrice;
+            // Add a small buffer or just round to 4 decimals for precision
+            const amount = parseFloat(solAmountRaw.toFixed(4));
+
             const feeAmount = 0.15;
+
+            console.log(`Price: $${solPrice}/SOL, Cost: $${totalUsdCost}, Amount: ${amount} SOL`);
 
             console.log('Getting latest blockhash...');
             const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
@@ -48,7 +87,7 @@ export const DeploymentCard: React.FC<DeploymentCardProps> = ({ nodeCount, setNo
                 SystemProgram.transfer({
                     fromPubkey: publicKey,
                     toPubkey: recipient,
-                    lamports: amount * LAMPORTS_PER_SOL,
+                    lamports: Math.round(amount * LAMPORTS_PER_SOL), // Ensure integer lamports
                 }),
                 SystemProgram.transfer({
                     fromPubkey: publicKey,
@@ -101,6 +140,11 @@ export const DeploymentCard: React.FC<DeploymentCardProps> = ({ nodeCount, setNo
             setIsDeploying(false);
         }
     };
+
+    // Calculate display values
+    const totalUsd = nodeCount * pricePerNode;
+    const estimatedSol = solPrice ? (totalUsd / solPrice) : 0;
+    const totalSolWithFee = estimatedSol + 0.15;
 
     return (
         <div className="glass-panel" style={{ padding: '2rem' }}>
@@ -214,11 +258,29 @@ export const DeploymentCard: React.FC<DeploymentCardProps> = ({ nodeCount, setNo
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                     <span style={{ color: 'white', fontSize: '1.1rem', fontWeight: '600' }}>Total (SOL)</span>
                     <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: '2rem', fontWeight: 'bold', lineHeight: 1, marginBottom: '0.25rem' }}>
-                            {(nodeCount * 15.625 + 0.15).toFixed(2)} SOL
+                        <div style={{ fontSize: '2rem', fontWeight: 'bold', lineHeight: 1, marginBottom: '0.25rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                            {solPrice ? (
+                                <>
+                                    {totalSolWithFee.toFixed(4)} SOL
+                                    <button
+                                        onClick={fetchSolPrice}
+                                        disabled={isFetchingPrice}
+                                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'var(--text-muted)' }}
+                                        title="Refresh Price"
+                                    >
+                                        <RefreshCw size={14} className={isFetchingPrice ? "animate-spin" : ""} />
+                                    </button>
+                                </>
+                            ) : (
+                                <span style={{ fontSize: '1.5rem' }}>Loading price...</span>
+                            )}
                         </div>
                         <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                            Approx. ${(nodeCount * pricePerNode).toLocaleString()}.00 USD + Fee
+                            {solPrice ? (
+                                <>Approx. ${totalUsd.toLocaleString()}.00 USD @ ${solPrice}/SOL</>
+                            ) : (
+                                <>Approx. ${totalUsd.toLocaleString()}.00 USD</>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -259,8 +321,8 @@ export const DeploymentCard: React.FC<DeploymentCardProps> = ({ nodeCount, setNo
             <button
                 className="btn-primary"
                 onClick={handleDeploy}
-                disabled={isDeploying}
-                style={{ opacity: isDeploying ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                disabled={isDeploying || !solPrice}
+                style={{ opacity: (isDeploying || !solPrice) ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
             >
                 {isDeploying ? (
                     <>
