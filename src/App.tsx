@@ -14,17 +14,17 @@ function App() {
         <WalletContextProvider>
             <div style={{ minHeight: '100vh' }}>
                 <header style={{ borderBottom: '1px solid var(--border)', background: 'rgba(2, 4, 16, 0.8)', backdropFilter: 'blur(10px)', position: 'sticky', top: 0, zIndex: 10 }}>
-                    <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 2rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <div style={{ width: '32px', height: '32px', background: 'var(--primary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div className="container header-content">
+                        <div className="logo-container">
+                            <div className="logo-icon">
                                 <Cpu size={20} color="white" />
                             </div>
-                            <span style={{ fontWeight: 'bold', fontSize: '1.25rem' }}>TokenOS <span style={{ fontSize: '0.8rem', color: '#a78bfa', fontWeight: 'normal', marginLeft: '0.5rem' }}>DeAI Alpha</span></span>
+                            <span className="logo-text">TokenOS <span className="logo-subtext">DeAI Alpha</span></span>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem' }}>
-                                <div style={{ width: '8px', height: '8px', background: 'var(--accent)', borderRadius: '50%', boxShadow: '0 0 10px var(--accent)' }}></div>
-                                <span style={{ color: 'var(--text-muted)' }}>Network Live</span>
+                        <div className="header-actions">
+                            <div className="network-indicator">
+                                <div className="network-dot"></div>
+                                <span className="network-text">Network Live</span>
                             </div>
                             <WalletMultiButton />
                         </div>
@@ -96,7 +96,7 @@ function App() {
                                 <div>
                                     <h4 style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>A²E Integration</h4>
                                     <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.5' }}>
-                                        The Arbitrage & Orchestration Engine manages your node. If internal demand is low, A²E automatically "wholesales" your compute to external spot markets (like AWS) to ensure you generate yield.
+                                        The Arbitrage & Orchestration Engine manages your node. If internal demand is low, A²E automatically "wholesales" your compute to external spot markets to ensure you generate yield.
                                     </p>
                                 </div>
                             </div>

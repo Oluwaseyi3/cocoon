@@ -116,3 +116,86 @@ body {
   background: #1e1e2e !important;
   border: 1px solid var(--border) !important;
 }
+
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2.5rem !important;
+  }
+
+  .container {
+    padding: 0 1rem;
+  }
+
+  .logo-subtext {
+    display: none;
+  }
+
+  .network-indicator {
+    display: none !important;
+  }
+
+  .header-content {
+    padding: 1rem 0 !important;
+  }
+}
+
+/* Header Styles */
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.logo-icon {
+  width: 32px;
+  height: 32px;
+  background: var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-text {
+  font-weight: bold;
+  font-size: 1.25rem;
+}
+
+.logo-subtext {
+  font-size: 0.8rem;
+  color: #a78bfa;
+  font-weight: normal;
+  margin-left: 0.5rem;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.network-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.network-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--accent);
+}
+
+.network-text {
+  color: var(--text-muted);
+}

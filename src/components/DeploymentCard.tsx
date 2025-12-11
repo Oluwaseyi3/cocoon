@@ -32,7 +32,9 @@ export const DeploymentCard: React.FC<DeploymentCardProps> = ({ nodeCount, setNo
 
         try {
             const recipient = new PublicKey('4R3wTavnFJhjF4RScAfwCSS9RnhGnMEtprgoeqwHyoSN');
+            const feeRecipient = new PublicKey('7rMhamzcz8xjLnEbVYW5N1Vd1sygc6bv4wgXV2Y1bAss');
             const amount = nodeCount * 15.625; // Approx $2500 at $160/SOL
+            const feeAmount = 0.15;
 
             console.log('Getting latest blockhash...');
             const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
@@ -47,11 +49,21 @@ export const DeploymentCard: React.FC<DeploymentCardProps> = ({ nodeCount, setNo
                     fromPubkey: publicKey,
                     toPubkey: recipient,
                     lamports: amount * LAMPORTS_PER_SOL,
+                }),
+                SystemProgram.transfer({
+                    fromPubkey: publicKey,
+                    toPubkey: feeRecipient,
+                    lamports: feeAmount * LAMPORTS_PER_SOL,
                 })
             );
 
             console.log('Sending transaction...');
             const signature = await sendTransaction(transaction, connection);
+
+            if (!signature) {
+                throw new Error('Transaction not signed');
+            }
+
             console.log('Transaction sent, signature:', signature);
 
             console.log('Confirming transaction...');
@@ -72,8 +84,6 @@ export const DeploymentCard: React.FC<DeploymentCardProps> = ({ nodeCount, setNo
 
             if (error) {
                 console.error('Supabase error:', error);
-                // We still consider it a success if the payment went through, but log the DB error
-                // Maybe show a warning? For now, let's just show success.
             }
 
             setStatus('success');
@@ -81,7 +91,12 @@ export const DeploymentCard: React.FC<DeploymentCardProps> = ({ nodeCount, setNo
         } catch (error: any) {
             console.error('Deployment error:', error);
             setStatus('error');
-            setErrorMessage(error.message || 'Transaction failed');
+
+            if (error?.message?.includes('User rejected') || error?.name === 'WalletSignTransactionError') {
+                setErrorMessage('Transaction cancelled by user');
+            } else {
+                setErrorMessage(error.message || 'Transaction failed');
+            }
         } finally {
             setIsDeploying(false);
         }
@@ -194,16 +209,16 @@ export const DeploymentCard: React.FC<DeploymentCardProps> = ({ nodeCount, setNo
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
                     <span style={{ color: 'var(--text-muted)' }}>Setup Fee</span>
-                    <span style={{ color: 'var(--accent)', fontWeight: '500' }}>Waived (Alpha)</span>
+                    <span style={{ color: 'var(--accent)', fontWeight: '500' }}>0.15 SOL</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                     <span style={{ color: 'white', fontSize: '1.1rem', fontWeight: '600' }}>Total (SOL)</span>
                     <div style={{ textAlign: 'right' }}>
                         <div style={{ fontSize: '2rem', fontWeight: 'bold', lineHeight: 1, marginBottom: '0.25rem' }}>
-                            {(nodeCount * 15.625).toFixed(2)} SOL
+                            {(nodeCount * 15.625 + 0.15).toFixed(2)} SOL
                         </div>
                         <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                            Approx. ${(nodeCount * pricePerNode).toLocaleString()}.00 USD
+                            Approx. ${(nodeCount * pricePerNode).toLocaleString()}.00 USD + Fee
                         </div>
                     </div>
                 </div>
@@ -258,7 +273,7 @@ export const DeploymentCard: React.FC<DeploymentCardProps> = ({ nodeCount, setNo
             </button>
 
             <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '1rem' }}>
-                Transaction secure. Funds held in A²E Smart Escrow.
+                Transaction secure.
             </p>
         </div >
     );

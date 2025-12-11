@@ -92,7 +92,7 @@ export const EarningsCard: React.FC<EarningsCardProps> = ({ nodeCount, pricePerN
             }}>
                 <p style={{ color: '#fbbf24', fontSize: '0.75rem', lineHeight: '1.4' }}>
                     <strong style={{ display: 'block', marginBottom: '0.25rem' }}>⚠ Alpha Disclaimer:</strong>
-                    Figures are estimates based on current network demand and A²E arbitrage rates. Actual earnings may vary. Node uptime guarantees apply. Deploying a node involves locking SOL for the duration of the contract.
+                    Figures are estimates based on current network demand and A²E arbitrage rates. Actual earnings may vary. Node uptime guarantees apply and nodes may experience downtime during alphaTesting when updates or changes to the protocol are being made. Deploying a node involves locking SOL for the duration of the contract.
                 </p>
             </div>
         </div>
