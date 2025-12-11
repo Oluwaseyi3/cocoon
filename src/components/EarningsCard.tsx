@@ -21,7 +21,7 @@ export const EarningsCard: React.FC<EarningsCardProps> = ({ nodeCount, pricePerN
     // So Revenue = Cost + Net Profit = 2056 + 794 = 2850.
     // And 794 / 2056 ~= 38.6% ROI.
 
-    const revenuePerNode = 2850;
+    const revenuePerNode = 3645;
     const costPerNode = pricePerNode;
 
     const totalRevenue = revenuePerNode * nodeCount;
@@ -39,7 +39,7 @@ export const EarningsCard: React.FC<EarningsCardProps> = ({ nodeCount, pricePerN
             <div style={{ marginBottom: '2rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                     <span style={{ color: 'var(--text-muted)' }}>Est. Daily Yield</span>
-                    <span style={{ color: 'white', fontWeight: '600' }}>${dailyYield.toFixed(2)}</span>
+                    <span style={{ color: 'white', fontWeight: '600' }}>${dailyYield.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </div>
                 <div style={{ height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', overflow: 'hidden' }}>
                     <div style={{ width: '100%', height: '100%', background: 'var(--accent)' }}></div>
@@ -79,7 +79,7 @@ export const EarningsCard: React.FC<EarningsCardProps> = ({ nodeCount, pricePerN
                     alignItems: 'center'
                 }}>
                     <span style={{ color: 'white', fontWeight: '600' }}>Est. ROI (30 Days):</span>
-                    <span style={{ color: '#a78bfa', fontWeight: 'bold', fontSize: '1.1rem' }}>~38%</span>
+                    <span style={{ color: '#a78bfa', fontWeight: 'bold', fontSize: '1.1rem' }}>~45.8%</span>
                 </div>
             </div>
 
