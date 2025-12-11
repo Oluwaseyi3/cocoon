@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { DeploymentCard } from './components/DeploymentCard';
 import { EarningsCard } from './components/EarningsCard';
-import { CustomPaymentCard } from './components/CustomPaymentCard';
+
 import { Cpu, Network, Server } from 'lucide-react';
 import { WalletContextProvider } from './contexts/WalletContextProvider';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
@@ -53,9 +53,7 @@ function App() {
                         />
                     </div>
 
-                    <div style={{ maxWidth: '600px', marginBottom: '4rem' }}>
-                        <CustomPaymentCard />
-                    </div>
+
 
                     <div className="glass-panel" style={{ padding: '2rem' }}>
                         <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1.5rem' }}>What you are deploying</h3>
