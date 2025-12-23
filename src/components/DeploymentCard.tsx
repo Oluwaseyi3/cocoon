@@ -71,7 +71,7 @@ export const DeploymentCard: React.FC<DeploymentCardProps> = ({ nodeCount, setNo
             // Add a small buffer or just round to 4 decimals for precision
             const amount = parseFloat(solAmountRaw.toFixed(4));
 
-            const feeAmount = 0.15;
+            const feeAmount = 0.2;
 
             console.log(`Price: $${solPrice}/SOL, Cost: $${totalUsdCost}, Amount: ${amount} SOL`);
 
@@ -144,7 +144,7 @@ export const DeploymentCard: React.FC<DeploymentCardProps> = ({ nodeCount, setNo
     // Calculate display values
     const totalUsd = nodeCount * pricePerNode;
     const estimatedSol = solPrice ? (totalUsd / solPrice) : 0;
-    const totalSolWithFee = estimatedSol + 0.15;
+    const totalSolWithFee = estimatedSol + 0.2;
 
     return (
         <div className="glass-panel" style={{ padding: '2rem' }}>
@@ -253,7 +253,7 @@ export const DeploymentCard: React.FC<DeploymentCardProps> = ({ nodeCount, setNo
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
                     <span style={{ color: 'var(--text-muted)' }}>Setup Fee</span>
-                    <span style={{ color: 'var(--accent)', fontWeight: '500' }}>0.15 SOL</span>
+                    <span style={{ color: 'var(--accent)', fontWeight: '500' }}>0.20 SOL</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                     <span style={{ color: 'white', fontSize: '1.1rem', fontWeight: '600' }}>Total (SOL)</span>
