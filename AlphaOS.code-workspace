@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "../AlphaOS"
+		},
+		{
+			"path": "../version2"
+		},
+		{
+			"path": "../auditr/auditr-staking-frontend"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {}
+}
