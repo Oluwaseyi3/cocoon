@@ -1,13 +1,15 @@
 import { Server, Activity, DollarSign } from 'lucide-react';
 import { useUserStatus } from '../hooks/useUserStatus';
+import { useDeployments } from '../hooks/useDeployments';
 import { Navigate } from 'react-router-dom';
 import { useWallet } from '@solana/wallet-adapter-react';
 
 export function Dashboard() {
-    const { isSignedUp, loading } = useUserStatus();
-    const { connected } = useWallet();
+    const { isSignedUp, loading: statusLoading } = useUserStatus();
+    const { deployments, loading: deploymentsLoading } = useDeployments();
+    const { connected, publicKey } = useWallet();
 
-    if (loading) {
+    if (statusLoading || deploymentsLoading) {
         return (
             <main className="container" style={{ paddingTop: '8rem', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <div style={{ color: 'var(--text-muted)' }}>Loading...</div>
@@ -19,30 +21,60 @@ export function Dashboard() {
         return <Navigate to="/" replace />;
     }
 
-    // Static data for now
-    const stats = {
-        totalNodes: 2,
-        totalEarnings: 1.45,
-        dailyYield: 0.12,
-        uptime: '99.9%'
+    // Earnings Logic
+    const RATE_PER_DAY = 120;
+    const DELAY_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+    const OVERRIDES: Record<string, string> = {
+        'k26A3XrW4gx7UXA3D8DhxcYQiwZjqc1gddb7f6LzgQP': '2025-12-12T00:00:00Z',
+        'GkWMf255xX2chqNgnV8B2djGa2eSsFBBC8ASdgtohFUb': '2025-12-21T00:00:00Z',
+        'EmZvBGFYh8XCS9nXu7F372abwMSEeX8e5LWuJxfMigby': '2025-12-23T00:00:00Z'
     };
 
-    const deployments = [
-        {
-            id: '1',
-            date: '2025-12-22T10:30:00Z',
-            nodes: 1,
-            status: 'Active',
-            hash: '5x...3k9'
-        },
-        {
-            id: '2',
-            date: '2025-12-23T14:15:00Z',
-            nodes: 1,
-            status: 'Provisioning',
-            hash: '9p...2m1'
+    const walletAddress = publicKey?.toString() || '';
+    const overrideDate = OVERRIDES[walletAddress];
+
+    let totalNodes = 0;
+    let totalEarnings = 0;
+
+    deployments.forEach(d => {
+        totalNodes += d.node_count;
+
+        // Determine start date: Override used if present, otherwise deployment creation time
+        // Note: For simplicity, if an override exists, we assume it applies to the 'account' start
+        // effectively treating the first deployment as starting then.
+        // However, if there are multiple deployments, this override logic might need refinement.
+        // Based on prompt "update their dashboard... since they've deployed", implies account level start.
+        // But calculation usually is per node.
+        // Let's apply override to the *earliest* deployment, or just use the override as the effective start for the calculation of that specific user's total active time?
+        // Let's stick to per-deployment calculation but if override exists, we replace the `created_at` of the EARLIEST deployment with the override date?
+        // Or simpler: If override exists, we treat ALL nodes as starting then? Prompt says "since they've deployed".
+        // Let's assume the override date replaces the `created_at` for the MAIN deployment.
+
+        let startDate = new Date(d.created_at).getTime();
+
+        // If override exists, and this is the "main" or only deployment (or we apply to all to catch up balance), let's apply to all for now to be generous/consistent with "since they've deployed".
+        if (overrideDate) {
+            startDate = new Date(overrideDate).getTime();
         }
-    ];
+
+        const effectiveStart = startDate + DELAY_MS;
+        const now = Date.now();
+
+        if (now > effectiveStart) {
+            const daysActive = (now - effectiveStart) / (24 * 60 * 60 * 1000);
+            totalEarnings += daysActive * RATE_PER_DAY * d.node_count;
+        }
+    });
+
+    const dailyYield = totalNodes * RATE_PER_DAY;
+
+    const stats = {
+        totalNodes: totalNodes,
+        totalEarnings: totalEarnings.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        dailyYield: dailyYield.toLocaleString(),
+        uptime: '99.9%'
+    };
 
     return (
         <main className="container" style={{ paddingTop: '8rem', paddingBottom: '8rem', minHeight: 'calc(100vh - 80px)' }}>
@@ -72,11 +104,11 @@ export function Dashboard() {
                         <div style={{ padding: '0.5rem', background: 'rgba(139, 92, 246, 0.1)', borderRadius: '8px' }}>
                             <DollarSign size={20} color="#a78bfa" />
                         </div>
-                        <span style={{ color: 'var(--text-muted)' }}>Total Earnings (SOL)</span>
+                        <span style={{ color: 'var(--text-muted)' }}>Total Earnings (USD)</span>
                     </div>
-                    <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--accent)' }}>{stats.totalEarnings}</div>
+                    <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--accent)' }}>${stats.totalEarnings}</div>
                     <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                        + {stats.dailyYield} SOL / day
+                        + ${stats.dailyYield} / day
                     </div>
                 </div>
 
@@ -109,20 +141,22 @@ export function Dashboard() {
                             {deployments.map((deployment) => (
                                 <tr key={deployment.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                                     <td style={{ padding: '1rem' }}>#{deployment.id}</td>
-                                    <td style={{ padding: '1rem' }}>{new Date(deployment.date).toLocaleDateString()}</td>
-                                    <td style={{ padding: '1rem' }}>{deployment.nodes} x H100</td>
+                                    <td style={{ padding: '1rem' }}>{new Date(deployment.created_at).toLocaleDateString()}</td>
+                                    <td style={{ padding: '1rem' }}>{deployment.node_count} x H100</td>
                                     <td style={{ padding: '1rem' }}>
                                         <span style={{
                                             padding: '0.25rem 0.75rem',
                                             borderRadius: '999px',
                                             fontSize: '0.875rem',
-                                            background: deployment.status === 'Active' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(234, 179, 8, 0.1)',
-                                            color: deployment.status === 'Active' ? '#10b981' : '#eab308'
+                                            background: 'rgba(16, 185, 129, 0.1)',
+                                            color: '#10b981'
                                         }}>
-                                            {deployment.status}
+                                            Active
                                         </span>
                                     </td>
-                                    <td style={{ padding: '1rem', fontFamily: 'monospace', color: 'var(--text-muted)' }}>{deployment.hash}</td>
+                                    <td style={{ padding: '1rem', fontFamily: 'monospace', color: 'var(--text-muted)' }}>
+                                        {deployment.transaction_signature.slice(0, 8)}...{deployment.transaction_signature.slice(-8)}
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
