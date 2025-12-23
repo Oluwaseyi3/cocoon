@@ -1,4 +1,4 @@
-import { Server, Activity, DollarSign, Clock } from 'lucide-react';
+import { Server, Activity, DollarSign } from 'lucide-react';
 import { useUserStatus } from '../hooks/useUserStatus';
 import { Navigate } from 'react-router-dom';
 import { useWallet } from '@solana/wallet-adapter-react';
