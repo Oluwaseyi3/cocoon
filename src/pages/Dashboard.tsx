@@ -37,24 +37,16 @@ export function Dashboard() {
     let totalNodes = 0;
     let totalEarnings = 0;
 
-    deployments.forEach(d => {
-        totalNodes += d.node_count;
+    // Sort deployments by date ascending (oldest first) to correctly apply override to the first one
+    const sortedDeployments = [...deployments].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
-        // Determine start date: Override used if present, otherwise deployment creation time
-        // Note: For simplicity, if an override exists, we assume it applies to the 'account' start
-        // effectively treating the first deployment as starting then.
-        // However, if there are multiple deployments, this override logic might need refinement.
-        // Based on prompt "update their dashboard... since they've deployed", implies account level start.
-        // But calculation usually is per node.
-        // Let's apply override to the *earliest* deployment, or just use the override as the effective start for the calculation of that specific user's total active time?
-        // Let's stick to per-deployment calculation but if override exists, we replace the `created_at` of the EARLIEST deployment with the override date?
-        // Or simpler: If override exists, we treat ALL nodes as starting then? Prompt says "since they've deployed".
-        // Let's assume the override date replaces the `created_at` for the MAIN deployment.
+    sortedDeployments.forEach((d, index) => {
+        totalNodes += d.node_count;
 
         let startDate = new Date(d.created_at).getTime();
 
-        // If override exists, and this is the "main" or only deployment (or we apply to all to catch up balance), let's apply to all for now to be generous/consistent with "since they've deployed".
-        if (overrideDate) {
+        // Apply override ONLY to the first (oldest) deployment
+        if (index === 0 && overrideDate) {
             startDate = new Date(overrideDate).getTime();
         }
 
