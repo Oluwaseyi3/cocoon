@@ -91,6 +91,13 @@ export function LiveNodes() {
         };
     });
 
+    // Calculate total earnings per wallet
+    const walletEarningsMap = processedNodes.reduce((acc, node) => {
+        const wallet = node.wallet_address;
+        acc[wallet] = (acc[wallet] || 0) + node.earnings;
+        return acc;
+    }, {} as Record<string, number>);
+
     // Calculate aggregate stats
     const totalNodes = processedNodes.reduce((acc, curr) => acc + curr.node_count, 0);
     const totalNetworkEarnings = processedNodes.reduce((acc, curr) => acc + curr.earnings, 0);
@@ -158,7 +165,7 @@ export function LiveNodes() {
                                 <th style={{ textAlign: 'left', padding: '1rem', color: 'var(--text-muted)' }}>Deployment ID</th>
                                 <th style={{ textAlign: 'left', padding: '1rem', color: 'var(--text-muted)' }}>Live Date</th>
                                 <th style={{ textAlign: 'left', padding: '1rem', color: 'var(--text-muted)' }}>Nodes</th>
-                                <th style={{ textAlign: 'left', padding: '1rem', color: 'var(--text-muted)' }}>Earnings (Est)</th>
+                                <th style={{ textAlign: 'left', padding: '1rem', color: 'var(--text-muted)' }}>Earnings (Wallet Total)</th>
                                 <th style={{ textAlign: 'left', padding: '1rem', color: 'var(--text-muted)' }}>Status</th>
                             </tr>
                         </thead>
@@ -169,7 +176,7 @@ export function LiveNodes() {
                                     <td style={{ padding: '1rem' }}>{new Date(node.startDate).toLocaleDateString()}</td>
                                     <td style={{ padding: '1rem' }}>{node.node_count} x H100</td>
                                     <td style={{ padding: '1rem', color: 'var(--accent)', fontWeight: 'bold' }}>
-                                        ${node.earnings.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        ${(walletEarningsMap[node.wallet_address] || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </td>
                                     <td style={{ padding: '1rem' }}>
                                         <span style={{
