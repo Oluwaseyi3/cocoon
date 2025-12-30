@@ -51,6 +51,14 @@ export function LiveNodes() {
     // Process data for display
     const processedNodes = deployments.map(d => {
         const walletAddress = d.wallet_address;
+
+        // Determine start date logic (mirroring Dashboard.tsx)
+        const userDeployments = deployments
+            .filter(ud => ud.wallet_address === walletAddress);
+
+        // Find oldest deployment for this user to apply the one-time 24h delay
+        const oldestDeploymentId = [...userDeployments].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())[0]?.id;
+
         const overrideDate = OVERRIDES[walletAddress];
 
         const createdTime = new Date(d.created_at).getTime();
@@ -64,8 +72,9 @@ export function LiveNodes() {
             }
         }
 
-        // Apply 24h delay UNIVERSALLY to all deployments
-        const effectiveStart = startDate + DELAY_MS;
+        // Apply 24h delay ONLY to the oldest deployment
+        const delay = d.id === oldestDeploymentId ? DELAY_MS : 0;
+        const effectiveStart = startDate + delay;
 
         const now = Date.now();
         let earnings = 0;

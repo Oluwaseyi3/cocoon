@@ -39,6 +39,7 @@ export function Dashboard() {
 
     // Sort deployments by date ascending (oldest first)
     const sortedDeployments = [...deployments].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    const oldestDeploymentId = sortedDeployments[0]?.id;
 
     sortedDeployments.forEach((d) => {
         totalNodes += d.node_count;
@@ -54,9 +55,10 @@ export function Dashboard() {
             }
         }
 
-        // Apply 24h delay UNIVERSALLY to all deployments
-        // Earnings start 24 hours after deployment (or launch floor)
-        const effectiveStart = startDate + DELAY_MS;
+        // Apply 24h setup delay ONLY to the oldest deployment
+        // Subsequent deployments start earning immediately
+        const delay = d.id === oldestDeploymentId ? DELAY_MS : 0;
+        const effectiveStart = startDate + delay;
 
         const now = Date.now();
 
