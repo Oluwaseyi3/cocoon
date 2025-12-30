@@ -37,16 +37,21 @@ export function Dashboard() {
     let totalNodes = 0;
     let totalEarnings = 0;
 
-    // Sort deployments by date ascending (oldest first) to correctly apply override to the first one
+    // Sort deployments by date ascending (oldest first)
     const sortedDeployments = [...deployments].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
-    sortedDeployments.forEach((d, index) => {
+    // Find the deployment with the highest node count to apply the override to
+    // This handles the case where a user has a small initial deployment and a later large deployment
+    // We want the override (backdating) to apply to their main fleet
+    const deploymentToOverride = [...deployments].sort((a, b) => b.node_count - a.node_count)[0];
+
+    sortedDeployments.forEach((d) => {
         totalNodes += d.node_count;
 
         let startDate = new Date(d.created_at).getTime();
 
-        // Apply override ONLY to the first (oldest) deployment
-        if (index === 0 && overrideDate) {
+        // Apply override to the deployment with highest node count
+        if (d.id === deploymentToOverride?.id && overrideDate) {
             startDate = new Date(overrideDate).getTime();
         }
 

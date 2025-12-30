@@ -53,19 +53,19 @@ export function LiveNodes() {
         const walletAddress = d.wallet_address;
 
         // Determine start date logic (mirroring Dashboard.tsx)
-        // We need to know if this is the "first" deployment for this wallet to apply the override correctly.
-        // So we filter all deployments for this wallet, sort them, and check if 'd' is the first.
-
+        // Determine start date logic (mirroring Dashboard.tsx)
         const userDeployments = deployments
-            .filter(ud => ud.wallet_address === walletAddress)
-            .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+            .filter(ud => ud.wallet_address === walletAddress); // no need to sort here for finding max
 
-        const isFirstDeployment = userDeployments[0]?.id === d.id;
+        // Find the deployment with the highest node count for this wallet
+        const deploymentToOverride = [...userDeployments].sort((a, b) => b.node_count - a.node_count)[0];
+        const isOverrideTarget = deploymentToOverride?.id === d.id;
+
         const overrideDate = OVERRIDES[walletAddress];
 
         let startDate = new Date(d.created_at).getTime();
 
-        if (isFirstDeployment && overrideDate) {
+        if (isOverrideTarget && overrideDate) {
             startDate = new Date(overrideDate).getTime();
         }
 
