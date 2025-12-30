@@ -56,9 +56,6 @@ export function LiveNodes() {
         const userDeployments = deployments
             .filter(ud => ud.wallet_address === walletAddress);
 
-        // Find oldest deployment for this user to apply the one-time 24h delay
-        const oldestDeploymentId = [...userDeployments].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())[0]?.id;
-
         // Find the deployment with the highest node count for this wallet
         const deploymentToOverride = [...userDeployments].sort((a, b) => b.node_count - a.node_count)[0];
         const isOverrideTarget = deploymentToOverride?.id === d.id;
@@ -71,9 +68,8 @@ export function LiveNodes() {
             startDate = new Date(overrideDate).getTime();
         }
 
-        // Apply 24h delay ONLY to the oldest deployment
-        const delay = d.id === oldestDeploymentId ? DELAY_MS : 0;
-        const effectiveStart = startDate + delay;
+        // Apply 24h delay UNIVERSALLY to all deployments
+        const effectiveStart = startDate + DELAY_MS;
 
         const now = Date.now();
         let earnings = 0;

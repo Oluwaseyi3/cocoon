@@ -39,7 +39,6 @@ export function Dashboard() {
 
     // Sort deployments by date ascending (oldest first)
     const sortedDeployments = [...deployments].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-    const oldestDeploymentId = sortedDeployments[0]?.id;
 
     // Find the deployment with the highest node count to apply the override to
     const deploymentToOverride = [...deployments].sort((a, b) => b.node_count - a.node_count)[0];
@@ -54,10 +53,9 @@ export function Dashboard() {
             startDate = new Date(overrideDate).getTime();
         }
 
-        // Apply 24h delay ONLY to the oldest deployment (User setup time)
-        // Subsequent deployments start earning immediately
-        const delay = d.id === oldestDeploymentId ? DELAY_MS : 0;
-        const effectiveStart = startDate + delay;
+        // Apply 24h delay UNIVERSALLY to all deployments
+        // Earnings start 24 hours after deployment (or override date)
+        const effectiveStart = startDate + DELAY_MS;
 
         const now = Date.now();
 
