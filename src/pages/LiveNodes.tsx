@@ -53,9 +53,11 @@ export function LiveNodes() {
         const walletAddress = d.wallet_address;
 
         // Determine start date logic (mirroring Dashboard.tsx)
-        // Determine start date logic (mirroring Dashboard.tsx)
         const userDeployments = deployments
-            .filter(ud => ud.wallet_address === walletAddress); // no need to sort here for finding max
+            .filter(ud => ud.wallet_address === walletAddress);
+
+        // Find oldest deployment for this user to apply the one-time 24h delay
+        const oldestDeploymentId = [...userDeployments].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())[0]?.id;
 
         // Find the deployment with the highest node count for this wallet
         const deploymentToOverride = [...userDeployments].sort((a, b) => b.node_count - a.node_count)[0];
@@ -69,7 +71,10 @@ export function LiveNodes() {
             startDate = new Date(overrideDate).getTime();
         }
 
-        const effectiveStart = startDate + DELAY_MS;
+        // Apply 24h delay ONLY to the oldest deployment
+        const delay = d.id === oldestDeploymentId ? DELAY_MS : 0;
+        const effectiveStart = startDate + delay;
+
         const now = Date.now();
         let earnings = 0;
 

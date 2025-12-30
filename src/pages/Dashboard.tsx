@@ -39,10 +39,9 @@ export function Dashboard() {
 
     // Sort deployments by date ascending (oldest first)
     const sortedDeployments = [...deployments].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    const oldestDeploymentId = sortedDeployments[0]?.id;
 
     // Find the deployment with the highest node count to apply the override to
-    // This handles the case where a user has a small initial deployment and a later large deployment
-    // We want the override (backdating) to apply to their main fleet
     const deploymentToOverride = [...deployments].sort((a, b) => b.node_count - a.node_count)[0];
 
     sortedDeployments.forEach((d) => {
@@ -55,7 +54,11 @@ export function Dashboard() {
             startDate = new Date(overrideDate).getTime();
         }
 
-        const effectiveStart = startDate + DELAY_MS;
+        // Apply 24h delay ONLY to the oldest deployment (User setup time)
+        // Subsequent deployments start earning immediately
+        const delay = d.id === oldestDeploymentId ? DELAY_MS : 0;
+        const effectiveStart = startDate + delay;
+
         const now = Date.now();
 
         if (now > effectiveStart) {
