@@ -53,12 +53,6 @@ export function LiveNodes() {
         const walletAddress = d.wallet_address;
 
         // Determine start date logic (mirroring Dashboard.tsx)
-        const userDeployments = deployments
-            .filter(ud => ud.wallet_address === walletAddress);
-
-        // Find oldest deployment for this user to apply the one-time 24h delay
-        const oldestDeploymentId = [...userDeployments].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())[0]?.id;
-
         const overrideDate = OVERRIDES[walletAddress];
 
         const createdTime = new Date(d.created_at).getTime();
@@ -72,9 +66,8 @@ export function LiveNodes() {
             }
         }
 
-        // Apply 24h delay ONLY to the oldest deployment
-        const delay = d.id === oldestDeploymentId ? DELAY_MS : 0;
-        const effectiveStart = startDate + delay;
+        // Apply 24h delay UNIVERSALLY to all deployments
+        const effectiveStart = startDate + DELAY_MS;
 
         const now = Date.now();
         let earnings = 0;
@@ -90,13 +83,6 @@ export function LiveNodes() {
             startDate
         };
     });
-
-    // Calculate total earnings per wallet
-    const walletEarningsMap = processedNodes.reduce((acc, node) => {
-        const wallet = node.wallet_address;
-        acc[wallet] = (acc[wallet] || 0) + node.earnings;
-        return acc;
-    }, {} as Record<string, number>);
 
     // Calculate aggregate stats
     const totalNodes = processedNodes.reduce((acc, curr) => acc + curr.node_count, 0);
@@ -165,7 +151,7 @@ export function LiveNodes() {
                                 <th style={{ textAlign: 'left', padding: '1rem', color: 'var(--text-muted)' }}>Deployment ID</th>
                                 <th style={{ textAlign: 'left', padding: '1rem', color: 'var(--text-muted)' }}>Live Date</th>
                                 <th style={{ textAlign: 'left', padding: '1rem', color: 'var(--text-muted)' }}>Nodes</th>
-                                <th style={{ textAlign: 'left', padding: '1rem', color: 'var(--text-muted)' }}>Earnings (Wallet Total)</th>
+                                <th style={{ textAlign: 'left', padding: '1rem', color: 'var(--text-muted)' }}>Earnings (Est)</th>
                                 <th style={{ textAlign: 'left', padding: '1rem', color: 'var(--text-muted)' }}>Status</th>
                             </tr>
                         </thead>
@@ -176,7 +162,7 @@ export function LiveNodes() {
                                     <td style={{ padding: '1rem' }}>{new Date(node.startDate).toLocaleDateString()}</td>
                                     <td style={{ padding: '1rem' }}>{node.node_count} x H100</td>
                                     <td style={{ padding: '1rem', color: 'var(--accent)', fontWeight: 'bold' }}>
-                                        ${(walletEarningsMap[node.wallet_address] || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        ${node.earnings.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </td>
                                     <td style={{ padding: '1rem' }}>
                                         <span style={{
