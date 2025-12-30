@@ -40,21 +40,22 @@ export function Dashboard() {
     // Sort deployments by date ascending (oldest first)
     const sortedDeployments = [...deployments].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
-    // Find the deployment with the highest node count to apply the override to
-    const deploymentToOverride = [...deployments].sort((a, b) => b.node_count - a.node_count)[0];
-
     sortedDeployments.forEach((d) => {
         totalNodes += d.node_count;
 
-        let startDate = new Date(d.created_at).getTime();
+        const createdTime = new Date(d.created_at).getTime();
+        let startDate = createdTime;
 
-        // Apply override to the deployment with highest node count
-        if (d.id === deploymentToOverride?.id && overrideDate) {
-            startDate = new Date(overrideDate).getTime();
+        if (overrideDate) {
+            const overrideTime = new Date(overrideDate).getTime();
+            // If bought before launch (override date), clamp start to launch date
+            if (createdTime < overrideTime) {
+                startDate = overrideTime;
+            }
         }
 
         // Apply 24h delay UNIVERSALLY to all deployments
-        // Earnings start 24 hours after deployment (or override date)
+        // Earnings start 24 hours after deployment (or launch floor)
         const effectiveStart = startDate + DELAY_MS;
 
         const now = Date.now();

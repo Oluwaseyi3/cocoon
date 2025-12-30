@@ -51,21 +51,17 @@ export function LiveNodes() {
     // Process data for display
     const processedNodes = deployments.map(d => {
         const walletAddress = d.wallet_address;
-
-        // Determine start date logic (mirroring Dashboard.tsx)
-        const userDeployments = deployments
-            .filter(ud => ud.wallet_address === walletAddress);
-
-        // Find the deployment with the highest node count for this wallet
-        const deploymentToOverride = [...userDeployments].sort((a, b) => b.node_count - a.node_count)[0];
-        const isOverrideTarget = deploymentToOverride?.id === d.id;
-
         const overrideDate = OVERRIDES[walletAddress];
 
-        let startDate = new Date(d.created_at).getTime();
+        const createdTime = new Date(d.created_at).getTime();
+        let startDate = createdTime;
 
-        if (isOverrideTarget && overrideDate) {
-            startDate = new Date(overrideDate).getTime();
+        if (overrideDate) {
+            const overrideTime = new Date(overrideDate).getTime();
+            // If bought before launch (override date), clamp start to launch date
+            if (createdTime < overrideTime) {
+                startDate = overrideTime;
+            }
         }
 
         // Apply 24h delay UNIVERSALLY to all deployments
