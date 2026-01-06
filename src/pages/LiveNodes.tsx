@@ -48,8 +48,8 @@ export function LiveNodes() {
         'EmZvBGFYh8XCS9nXu7F372abwMSEeX8e5LWuJxfMigby': '2025-12-23T00:00:00Z'
     };
 
-    // Process data for display
-    const processedNodes = deployments.map(d => {
+    // Process data for display (filter out deployment #1 which has 0 nodes)
+    const processedNodes = deployments.filter(d => d.id !== 1).map(d => {
         const walletAddress = d.wallet_address;
 
         // Determine start date logic (mirroring Dashboard.tsx)
