@@ -39,7 +39,7 @@ export function LiveNodes() {
     }, []);
 
     // Earnings Logic Constants
-    const RATE_PER_DAY = 120;
+    const RATE_PER_DAY = 119.72;
     const DELAY_MS = 24 * 60 * 60 * 1000; // 24 hours
     const LIFECYCLE_DAYS = 30;
     const LIFECYCLE_MS = LIFECYCLE_DAYS * 24 * 60 * 60 * 1000;
