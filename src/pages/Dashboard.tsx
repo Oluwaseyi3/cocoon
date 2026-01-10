@@ -1,4 +1,4 @@
-import { Server, Activity, DollarSign } from 'lucide-react';
+import { Server, Activity, DollarSign, AlertCircle } from 'lucide-react';
 import { useUserStatus } from '../hooks/useUserStatus';
 import { useDeployments } from '../hooks/useDeployments';
 import { Navigate } from 'react-router-dom';
@@ -24,6 +24,8 @@ export function Dashboard() {
     // Earnings Logic
     const RATE_PER_DAY = 120;
     const DELAY_MS = 24 * 60 * 60 * 1000; // 24 hours
+    const LIFECYCLE_DAYS = 30;
+    const LIFECYCLE_MS = LIFECYCLE_DAYS * 24 * 60 * 60 * 1000;
 
     const OVERRIDES: Record<string, string> = {
         'k26A3XrW4gx7UXA3D8DhxcYQiwZjqc1gddb7f6LzgQP': '2025-12-12T00:00:00Z',
@@ -34,36 +36,55 @@ export function Dashboard() {
     const walletAddress = publicKey?.toString() || '';
     const overrideDate = OVERRIDES[walletAddress];
 
-    let totalNodes = 0;
-    let totalEarnings = 0;
-
-    // Sort deployments by date ascending (oldest first)
-    const sortedDeployments = [...deployments].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-
-    sortedDeployments.forEach((d) => {
-        totalNodes += d.node_count;
-
+    // Process deployments to calculate status and earnings for each
+    const processedDeployments = deployments.map(d => {
         const createdTime = new Date(d.created_at).getTime();
         let startDate = createdTime;
 
         if (overrideDate) {
             const overrideTime = new Date(overrideDate).getTime();
-            // If bought before launch (override date), clamp start to launch date
             if (createdTime < overrideTime) {
                 startDate = overrideTime;
             }
         }
 
-        // Apply 24h delay UNIVERSALLY to all deployments
         const effectiveStart = startDate + DELAY_MS;
-
+        const completionDate = effectiveStart + LIFECYCLE_MS;
         const now = Date.now();
 
-        if (now > effectiveStart) {
+        let earnings = 0;
+        let status = 'Active';
+
+        if (now > completionDate) {
+            earnings = LIFECYCLE_DAYS * RATE_PER_DAY * d.node_count;
+            status = 'Completed';
+        } else if (now > effectiveStart) {
             const daysActive = (now - effectiveStart) / (24 * 60 * 60 * 1000);
-            totalEarnings += daysActive * RATE_PER_DAY * d.node_count;
+            earnings = daysActive * RATE_PER_DAY * d.node_count;
+        } else {
+            status = 'Provisioning';
         }
+
+        return {
+            ...d,
+            earnings,
+            status,
+            effectiveStart
+        };
     });
+
+    // Calculate totals
+    const totalNodes = processedDeployments.reduce((acc, curr) => acc + curr.node_count, 0);
+    const totalEarnings = processedDeployments.reduce((acc, curr) => acc + curr.earnings, 0);
+
+    // Check if any nodes are completed to show message
+    const hasCompletedNodes = processedDeployments.some(d => d.status === 'Completed');
+
+    // Sort by date (newest first for list, or oldest? Original code sorted oldest first for loop but didn't resort for display. Let's keep display order based on original hook return which likely was default order, but let's confirm.
+    // The original code: const sortedDeployments = [...deployments].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    // But the loop was only for totals. The table mapped `deployments`.
+    // Let's sort processedDeployments by newest first for the table as is common.
+    processedDeployments.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
     const dailyYield = totalNodes * RATE_PER_DAY;
 
@@ -84,6 +105,23 @@ export function Dashboard() {
                     Monitor your compute nodes and earnings
                 </p>
             </div>
+
+            {hasCompletedNodes && (
+                <div style={{
+                    marginBottom: '2rem',
+                    padding: '1rem',
+                    background: 'rgba(59, 130, 246, 0.1)',
+                    border: '1px solid rgba(59, 130, 246, 0.2)',
+                    borderRadius: '12px',
+                    color: '#93c5fd',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem'
+                }}>
+                    <AlertCircle size={20} />
+                    <span>Your earnings will be deposited to your deployment wallet within 24 hours of deployment completion.</span>
+                </div>
+            )}
 
             {/* Stats Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '4rem' }}>
@@ -136,7 +174,7 @@ export function Dashboard() {
                             </tr>
                         </thead>
                         <tbody>
-                            {deployments.map((deployment) => (
+                            {processedDeployments.map((deployment) => (
                                 <tr key={deployment.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                                     <td style={{ padding: '1rem' }}>#{deployment.id}</td>
                                     <td style={{ padding: '1rem' }}>{new Date(deployment.created_at).toLocaleDateString()}</td>
@@ -146,10 +184,11 @@ export function Dashboard() {
                                             padding: '0.25rem 0.75rem',
                                             borderRadius: '999px',
                                             fontSize: '0.875rem',
-                                            background: 'rgba(16, 185, 129, 0.1)',
-                                            color: '#10b981'
+                                            background: deployment.status === 'Completed' ? 'rgba(75, 85, 99, 0.2)' : 'rgba(16, 185, 129, 0.1)',
+                                            color: deployment.status === 'Completed' ? '#9ca3af' : '#10b981',
+                                            border: deployment.status === 'Completed' ? '1px solid rgba(75, 85, 99, 0.3)' : 'none'
                                         }}>
-                                            Active
+                                            {deployment.status}
                                         </span>
                                     </td>
                                     <td style={{ padding: '1rem', fontFamily: 'monospace', color: 'var(--text-muted)' }}>

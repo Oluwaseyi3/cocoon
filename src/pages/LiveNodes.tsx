@@ -41,6 +41,8 @@ export function LiveNodes() {
     // Earnings Logic Constants
     const RATE_PER_DAY = 120;
     const DELAY_MS = 24 * 60 * 60 * 1000; // 24 hours
+    const LIFECYCLE_DAYS = 30;
+    const LIFECYCLE_MS = LIFECYCLE_DAYS * 24 * 60 * 60 * 1000;
 
     const OVERRIDES: Record<string, string> = {
         'k26A3XrW4gx7UXA3D8DhxcYQiwZjqc1gddb7f6LzgQP': '2025-12-12T00:00:00Z',
@@ -68,19 +70,28 @@ export function LiveNodes() {
 
         // Apply 24h delay UNIVERSALLY to all deployments
         const effectiveStart = startDate + DELAY_MS;
+        const completionDate = effectiveStart + LIFECYCLE_MS;
 
         const now = Date.now();
         let earnings = 0;
+        let pStatus = 'Active';
 
-        if (now > effectiveStart) {
+        if (now > completionDate) {
+            earnings = LIFECYCLE_DAYS * RATE_PER_DAY * d.node_count;
+            pStatus = 'Completed';
+        } else if (now > effectiveStart) {
             const daysActive = (now - effectiveStart) / (24 * 60 * 60 * 1000);
             earnings = daysActive * RATE_PER_DAY * d.node_count;
+        } else {
+            pStatus = 'Provisioning';
         }
 
         return {
             ...d,
             earnings,
-            startDate
+            startDate,
+            pStatus,
+            completionDate
         };
     });
 
@@ -169,10 +180,11 @@ export function LiveNodes() {
                                             padding: '0.25rem 0.75rem',
                                             borderRadius: '999px',
                                             fontSize: '0.875rem',
-                                            background: 'rgba(16, 185, 129, 0.1)',
-                                            color: '#10b981'
+                                            background: node.pStatus === 'Completed' ? 'rgba(75, 85, 99, 0.2)' : 'rgba(16, 185, 129, 0.1)',
+                                            color: node.pStatus === 'Completed' ? '#9ca3af' : '#10b981',
+                                            border: node.pStatus === 'Completed' ? '1px solid rgba(75, 85, 99, 0.3)' : 'none'
                                         }}>
-                                            Active
+                                            {node.pStatus}
                                         </span>
                                     </td>
                                 </tr>
