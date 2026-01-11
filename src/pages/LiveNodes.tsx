@@ -21,12 +21,13 @@ export function LiveNodes() {
                 const { data, error } = await supabase
                     .from('deployments')
                     .select('*')
-                    .order('created_at', { ascending: false });
+                    .order('created_at', { ascending: true });
 
                 if (error) {
                     console.error('Error fetching deployments:', error);
                 } else {
                     setDeployments(data || []);
+                    console.log('Fetched deployments:', data); // Added console.log here
                 }
             } catch (error) {
                 console.error('Error:', error);
