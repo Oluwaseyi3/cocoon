@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Server, Activity, DollarSign } from 'lucide-react';
+import { Server, Activity, DollarSign, Copy } from 'lucide-react';
 
 interface Deployment {
     id: number;
@@ -161,6 +161,7 @@ export function LiveNodes() {
                         <thead>
                             <tr style={{ borderBottom: '1px solid var(--border)' }}>
                                 <th style={{ textAlign: 'left', padding: '1rem', color: 'var(--text-muted)' }}>Deployment ID</th>
+                                <th style={{ textAlign: 'left', padding: '1rem', color: 'var(--text-muted)' }}>Wallet</th>
                                 <th style={{ textAlign: 'left', padding: '1rem', color: 'var(--text-muted)' }}>Live Date</th>
                                 <th style={{ textAlign: 'left', padding: '1rem', color: 'var(--text-muted)' }}>Nodes</th>
                                 <th style={{ textAlign: 'left', padding: '1rem', color: 'var(--text-muted)' }}>Earnings (Est)</th>
@@ -171,6 +172,30 @@ export function LiveNodes() {
                             {processedNodes.map((node, index) => (
                                 <tr key={node.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                                     <td style={{ padding: '1rem', fontFamily: 'monospace' }}>#{processedNodes.length - index}</td>
+                                    <td style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <span style={{ fontFamily: 'monospace', color: 'var(--text-muted)' }}>
+                                            {node.wallet_address.slice(0, 4)}...{node.wallet_address.slice(-4)}
+                                        </span>
+                                        <button
+                                            onClick={() => navigator.clipboard.writeText(node.wallet_address)}
+                                            style={{
+                                                background: 'transparent',
+                                                border: 'none',
+                                                color: 'var(--accent)',
+                                                cursor: 'pointer',
+                                                padding: '4px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                transition: 'opacity 0.2s',
+                                                opacity: 0.8
+                                            }}
+                                            onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+                                            onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.8')}
+                                            title="Copy Address"
+                                        >
+                                            <Copy size={16} />
+                                        </button>
+                                    </td>
                                     <td style={{ padding: '1rem' }}>{new Date(node.startDate).toLocaleDateString()}</td>
                                     <td style={{ padding: '1rem' }}>{node.node_count} x H100</td>
                                     <td style={{ padding: '1rem', color: 'var(--accent)', fontWeight: 'bold' }}>
