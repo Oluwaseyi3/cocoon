@@ -21,7 +21,7 @@ export function LiveNodes() {
                 const { data, error } = await supabase
                     .from('deployments')
                     .select('*')
-                    .order('created_at', { ascending: true });
+                    .order('created_at', { ascending: false });
 
                 if (error) {
                     console.error('Error fetching deployments:', error);
@@ -170,7 +170,7 @@ export function LiveNodes() {
                         <tbody>
                             {processedNodes.map((node, index) => (
                                 <tr key={node.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                                    <td style={{ padding: '1rem', fontFamily: 'monospace' }}>#{index + 1}</td>
+                                    <td style={{ padding: '1rem', fontFamily: 'monospace' }}>#{processedNodes.length - index}</td>
                                     <td style={{ padding: '1rem' }}>{new Date(node.startDate).toLocaleDateString()}</td>
                                     <td style={{ padding: '1rem' }}>{node.node_count} x H100</td>
                                     <td style={{ padding: '1rem', color: 'var(--accent)', fontWeight: 'bold' }}>
