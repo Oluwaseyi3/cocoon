@@ -47,7 +47,7 @@ async function checkDeployments() {
     const { data: deployments, error } = await supabase
         .from('deployments')
         .select('*')
-        .in('id', [2, 3]);
+        .in('id', [2, 3, 4]);
 
     if (error) {
         console.error('Error fetching deployments:', error);
