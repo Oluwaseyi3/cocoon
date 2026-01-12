@@ -97,7 +97,9 @@ export function LiveNodes() {
     });
 
     // Calculate aggregate stats
-    const totalNodes = processedNodes.reduce((acc, curr) => acc + curr.node_count, 0);
+    const totalNodes = processedNodes.reduce((acc, curr) => {
+        return curr.pStatus !== 'Completed' ? acc + curr.node_count : acc;
+    }, 0);
     const totalNetworkEarnings = processedNodes.reduce((acc, curr) => acc + curr.earnings, 0);
     const totalUptime = '99.9%'; // Static for now
 
@@ -137,7 +139,7 @@ export function LiveNodes() {
                         <div style={{ padding: '0.5rem', background: 'rgba(139, 92, 246, 0.1)', borderRadius: '8px' }}>
                             <DollarSign size={20} color="#a78bfa" />
                         </div>
-                        <span style={{ color: 'var(--text-muted)' }}>Network Earnings Paid</span>
+                        <span style={{ color: 'var(--text-muted)' }}>Total Network Earnings</span>
                     </div>
                     <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--accent)' }}>${totalNetworkEarnings.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
                 </div>
